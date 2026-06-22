@@ -7,51 +7,45 @@ on:
     branches: [ "master", "main" ]
   workflow_dispatch:
 
-# This forces every Flutter setup command to execute directly within your code repository folder
-defaults:
-  run:
-    working-directory: hlbmerge_flutter
-
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Download your Flutter source code
+      # Step 1: Download your Flutter codebase into the absolute workspace root
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Step 2: Install Java Development Kit required for compilation
+      # Step 2: Establish the mandatory Java environment required for compilation
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Step 3: Install the Flutter framework environment 
+      # Step 3: Initialize stable Flutter developer dependencies inside the container
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      # Step 4: Wipe out stale structural caches that throw Exit Code 1
+      # Step 4: Clear build caches that could trigger generic exit codes
       - name: Clean Project Cache
         run: flutter clean
 
-      # Step 5: Download and map local project dependencies
+      # Step 5: Update all package connections in your root pubspec.yaml
       - name: Install Dependencies
         run: flutter pub get
 
-      # Step 6: Build the final release version of the APK
+      # Step 6: Trigger the release compilation process securely
       - name: Build Android APK
         run: flutter build apk --release
 
-      # Step 7: Collect and save your completed application package
+      # Step 7: Locate and bundle the generated app binary
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          # Traces the precise absolute path through the runner workspace
-          path: ${{ github.workspace }}/hlbmerge_flutter/build/app/outputs/flutter-apk/app-release.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
           
