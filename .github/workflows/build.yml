@@ -12,38 +12,35 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Download your Flutter codebase into the absolute workspace root
+      # Step 1: Download code cleanly
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      # Step 2: Establish the mandatory Java environment required for compilation
+      # Step 2: Initialize Java using the latest runtime bindings
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      # Step 3: Initialize stable Flutter developer dependencies inside the container
+      # Step 3: Setup Flutter (Uses specific action versioning)
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
 
-      # Step 4: Clear build caches that could trigger generic exit codes
-      - name: Clean Project Cache
-        run: flutter clean
-
-      # Step 5: Update all package connections in your root pubspec.yaml
+      # Step 4: Force pull packages ignoring local cache locks
       - name: Install Dependencies
         run: flutter pub get
 
-      # Step 6: Trigger the release compilation process securely
-      - name: Build Android APK
-        run: flutter build apk --release
+      # Step 5: Compile with Verbose Diagnostic Logging
+      - name: Build Android APK (Diagnostic Mode)
+        run: flutter build apk --release -v
 
-      # Step 7: Locate and bundle the generated app binary
+      # Step 6: Attempt emergency artifact gathering
       - name: Upload APK Artifact
+        if: always() # Runs even if the compilation step cracks
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
