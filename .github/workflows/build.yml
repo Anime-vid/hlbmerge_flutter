@@ -2,10 +2,15 @@ name: Build Flutter Android APK
 
 on:
   push:
-    branches: [ "master", "main" ] # Fits your master branch setup
+    branches: [ "master", "main" ]
   pull_request:
     branches: [ "master", "main" ]
   workflow_dispatch:
+
+# This forces every Flutter setup command to execute directly within your code repository folder
+defaults:
+  run:
+    working-directory: hlbmerge_flutter
 
 jobs:
   build:
@@ -27,21 +32,26 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: 'stable' # Pulls the current stable build engine
-          cache: true       # Speeds up your next builds
+          channel: 'stable'
+          cache: true
 
-      # Step 4: Download the specific Flutter package dependencies
+      # Step 4: Wipe out stale structural caches that throw Exit Code 1
+      - name: Clean Project Cache
+        run: flutter clean
+
+      # Step 5: Download and map local project dependencies
       - name: Install Dependencies
         run: flutter pub get
 
-      # Step 5: Build the final release version of the APK
+      # Step 6: Build the final release version of the APK
       - name: Build Android APK
         run: flutter build apk --release
 
-      # Step 6: Collect and save your completed application package
+      # Step 7: Collect and save your completed application package
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          # Traces the precise absolute path through the runner workspace
+          path: ${{ github.workspace }}/hlbmerge_flutter/build/app/outputs/flutter-apk/app-release.apk
           
